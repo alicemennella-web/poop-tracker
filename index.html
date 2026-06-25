@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poop Tracker di Manuel</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💩</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #7EB743; --green-dark: #4A7020; --green-deeper: #2E4A12;
+      --green-pale: #EEF7E4; --white: #FAFAF8; --ink: #1A1A18;
+      --ink-mid: #3A3A36; --ink-soft: #6B6B64; --ink-muted: #9A9A90;
+    }
+    body { margin: 0; background: var(--green); }
+    .app { font-family: 'DM Sans', sans-serif; background: var(--green); min-height: 100vh; color: var(--ink); max-width: 600px; margin: 0 auto; }
+
+    /* HEADER */
+    .header { padding: 2.2rem 1.5rem 1.8rem; text-align: center; }
+    .header-title { font-size: 28px; font-weight: 700; color: var(--white); letter-spacing: -0.5px; }
+    .header-sub { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); margin-top: 6px; }
+    .header-sub em { font-style: italic; font-weight: 300; color: rgba(255,255,255,0.62); display: block; font-size: 12px; margin-top: 3px; }
+
+    /* NAV */
+    .nav-wrap { padding: 0 1.5rem 1rem; }
+    .nav { display: flex; background: rgba(255,255,255,0.18); border-radius: 14px; padding: 4px; gap: 4px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25); }
+    .nav-btn { flex: 1; padding: 11px 6px; background: none; border: none; color: rgba(255,255,255,0.80); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.18s; line-height: 1.2; }
+    .nav-btn .nav-emoji { font-size: 18px; }
+    .nav-btn.active { background: var(--white); color: var(--green-dark); font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+    .nav-btn:hover:not(.active) { background: rgba(255,255,255,0.12); color: #fff; }
+
+    /* MAIN */
+    .main { background: var(--white); margin: 0 1.5rem 1.5rem; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.10); }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* INSERT */
+    .insert-body { padding: 2rem 1.5rem 2.5rem; }
+    .big-btn { width: 100%; padding: 2rem 1.5rem; background: var(--green); border: none; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: background 0.15s, transform 0.1s; margin-bottom: 1.5rem; }
+    .big-btn:hover { background: #8DC94F; }
+    .big-btn:active { transform: scale(0.98); }
+    .big-btn.shake { animation: shake 0.38s; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px) rotate(-1.5deg)} 40%{transform:translateX(5px) rotate(1.5deg)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
+    .big-btn-emoji { font-size: 44px; line-height: 1; }
+    .big-btn-label { font-size: 26px; font-weight: 700; color: var(--ink); letter-spacing: -0.5px; }
+    .big-btn-hint { font-size: 12px; color: var(--ink-soft); font-weight: 400; }
+
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 8px; }
+    .stats-grid-bottom { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1.5rem; }
+    .stat-item { text-align: center; padding: 1rem 0.5rem; background: var(--green-pale); border-radius: 10px; }
+    .stat-num { font-size: 30px; font-weight: 700; color: var(--green-dark); line-height: 1; }
+    .stat-label { font-size: 10px; font-weight: 600; color: var(--ink-soft); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.6px; }
+    .stat-sublabel { font-size: 9px; color: var(--ink-muted); margin-top: 2px; font-style: italic; }
+    .stat-badge { font-size: 20px; display: block; margin-bottom: 3px; }
+    .stat-text { font-size: 11px; font-weight: 500; color: var(--ink-mid); line-height: 1.3; margin-top: 2px; }
+
+    /* FUN FACT */
+    .fun-fact-box { background: var(--green-pale); border-left: 3px solid var(--green); border-radius: 0 10px 10px 0; padding: 1rem 1.25rem; display: none; }
+    .fun-fact-box.show { display: block; }
+    .fun-fact-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--green-dark); margin-bottom: 6px; }
+    .fun-fact-text { font-size: 13px; line-height: 1.75; color: var(--ink-mid); font-style: italic; }
+    .fun-fact-text.loading { color: var(--ink-muted); }
+
+    /* STATS TAB */
+    .stats-body { padding: 1.5rem; }
+    .chart-block { margin-bottom: 2rem; }
+    .chart-label { font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 2px; letter-spacing: -0.3px; }
+    .chart-sublabel { font-size: 12px; color: var(--ink-muted); margin-bottom: 10px; }
+    .chart-divider { border: none; border-top: 1px solid #EBEBEA; margin: 0 0 2rem; }
+    .chart-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    .chart-tab { padding: 5px 14px; border-radius: 20px; border: 1.5px solid #E0E0DC; background: none; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--ink-soft); cursor: pointer; transition: all 0.15s; }
+    .chart-tab.active { background: var(--green-deeper); border-color: var(--green-deeper); color: #fff; font-weight: 600; }
+    .chart-tab:hover:not(.active) { border-color: var(--green); color: var(--green-dark); }
+    .chart-wrap { position: relative; height: 200px; }
+
+    /* POPUP */
+    .popup-overlay { display: none; position: fixed; inset: 0; background: rgba(20,35,10,0.55); backdrop-filter: blur(4px); z-index: 100; align-items: flex-end; justify-content: center; }
+    .popup-overlay.open { display: flex; }
+    .popup { background: var(--white); width: 100%; max-width: 600px; border-radius: 20px 20px 0 0; padding: 0 0 2rem; max-height: 88vh; overflow-y: auto; animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1); }
+    @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    .popup-handle { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem 1rem; border-bottom: 1px solid #EBEBEA; position: sticky; top: 0; background: var(--white); z-index: 1; }
+    .popup-title { font-size: 18px; font-weight: 700; color: var(--ink); letter-spacing: -0.3px; }
+    .popup-close { width: 32px; height: 32px; border-radius: 50%; background: #F0F0EE; border: none; cursor: pointer; font-size: 15px; color: var(--ink-soft); display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+    .popup-close:hover { background: #E0E0DC; }
+    .popup-body { padding: 1.5rem; }
+    .popup-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-muted); margin-bottom: 10px; }
+    .option-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1.5rem; }
+    .option-btn { padding: 10px 6px; border: 1.5px solid #E0E0DC; border-radius: 10px; background: #FAFAF8; cursor: pointer; text-align: center; font-size: 11px; font-family: 'DM Sans', sans-serif; color: var(--ink-mid); font-weight: 400; transition: all 0.15s; line-height: 1.45; }
+    .option-btn .emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+    .option-btn:hover:not(.selected) { border-color: var(--green); background: var(--green-pale); color: var(--green-dark); }
+    .option-btn.selected { border-color: var(--green-deeper); background: var(--green-deeper); color: #fff; font-weight: 600; }
+    .popup-save { width: 100%; padding: 15px; background: var(--green); color: var(--ink); border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+    .popup-save:hover { background: #8DC94F; }
+    .popup-save:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* LOG */
+    .log-body { padding: 1.5rem; }
+    .log-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #EBEBEA; }
+    .log-item:last-child { border-bottom: none; }
+    .log-emoji { font-size: 22px; }
+    .log-info { flex: 1; }
+    .log-desc { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.4; }
+    .log-time { font-size: 11px; color: var(--ink-muted); margin-top: 2px; }
+    .log-del { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; color: var(--ink-muted); border: 1px solid #E0E0DC; background: none; border-radius: 6px; padding: 4px 9px; cursor: pointer; transition: all 0.12s; }
+    .log-del:hover { color: #B03030; border-color: #F0A0A0; background: #FEF0F0; }
+    .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--ink-muted); }
+    .empty-emoji { font-size: 48px; display: block; margin-bottom: 12px; }
+    .empty-text { font-size: 14px; line-height: 1.7; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(70px); background: var(--green-deeper); color: var(--white); padding: 11px 22px; border-radius: 30px; font-size: 13px; font-weight: 500; transition: transform 0.28s cubic-bezier(0.32,0.72,0,1); z-index: 999; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* CONFIG BANNER */
+    .config-banner { background: #FFF3CD; border: 1px solid #FFD700; border-radius: 10px; padding: 0.9rem 1.1rem; margin-bottom: 1.25rem; font-size: 12px; color: #856404; display: none; }
+    .config-banner.show { display: block; }
+    .config-banner strong { display: block; margin-bottom: 4px; font-size: 13px; }
+    .config-banner a { color: var(--green-dark); font-weight: 600; cursor: pointer; text-decoration: underline; }
+
+    /* SETTINGS POPUP */
+    .header { position: relative; }
+
+    .settings-form { padding: 1.5rem; }
+    .settings-form label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ink-soft); margin-bottom: 6px; margin-top: 1.1rem; }
+    .settings-form label:first-child { margin-top: 0; }
+    .settings-form input { width: 100%; padding: 10px 12px; border: 1.5px solid #E0E0DC; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink); background: #FAFAF8; outline: none; }
+    .settings-form input:focus { border-color: var(--green); }
+    .settings-save { width: 100%; padding: 13px; background: var(--green); color: var(--ink); border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 1.5rem; transition: background 0.15s; }
+    .settings-save:hover { background: #8DC94F; }
+    .settings-note { font-size: 11px; color: var(--ink-muted); margin-top: 0.75rem; line-height: 1.6; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-title">💩 Poop Tracker 💩</div>
+    <div class="header-sub">
+      Le defecazioni di Manuel, tracciate con orgoglio
+      <em>Perché le grandi opere vanno documentate</em>
+    </div>
+  </div>
+
+  <div class="nav-wrap">
+    <div class="nav">
+      <button class="nav-btn active" onclick="showTab('insert',this)"><span class="nav-emoji">➕</span>Aggiungi</button>
+      <button class="nav-btn" onclick="showTab('stats',this)"><span class="nav-emoji">📊</span>Cosine Datose</button>
+      <button class="nav-btn" onclick="showTab('log',this)"><span class="nav-emoji">📜</span>Storico</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- INSERT -->
+    <div id="tab-insert" class="section active">
+      <div class="insert-body">
+
+
+        <button class="big-btn" id="mainBtn" onclick="openPopup()">
+          <span class="big-btn-emoji">💩</span>
+          <span class="big-btn-label">+1 Cacca!</span>
+          <span class="big-btn-hint">Clicca per registrare la produzione</span>
+        </button>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-num" id="countToday">0</div>
+            <div class="stat-label">Oggi</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num" id="countWeek">0</div>
+            <div class="stat-label">Settimana</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num" id="countMonth">0</div>
+            <div class="stat-label">Mese</div>
+          </div>
+        </div>
+
+        <div class="stats-grid-bottom">
+          <div class="stat-item">
+            <div class="stat-num" id="avgYear">0</div>
+            <div class="stat-label">Media/giorno</div>
+            <div class="stat-sublabel">sull'anno in corso</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-badge" id="topConsistencyEmoji">—</span>
+            <div class="stat-text" id="topConsistencyLabel">–</div>
+            <div class="stat-label">Consistenza top</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-badge" id="topSizeEmoji">—</span>
+            <div class="stat-text" id="topSizeLabel">–</div>
+            <div class="stat-label">Dimensione top</div>
+          </div>
+        </div>
+
+        <div class="fun-fact-box" id="funFactBox">
+          <div class="fun-fact-label">💡 Lo sapevi?</div>
+          <div class="fun-fact-text" id="funFactText"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div id="tab-stats" class="section">
+      <div class="stats-body">
+        <div class="chart-block">
+          <div class="chart-label">📅 Questa settimana</div>
+          <div class="chart-sublabel" id="weekRange">Lun–Dom</div>
+          <div class="chart-tabs">
+            <button class="chart-tab active" onclick="switchChartTab('week','consistency',this)">Consistenza</button>
+            <button class="chart-tab" onclick="switchChartTab('week','size',this)">Dimensione</button>
+          </div>
+          <div class="chart-wrap"><canvas id="chartWeek"></canvas></div>
+        </div>
+        <hr class="chart-divider">
+        <div class="chart-block">
+          <div class="chart-label">📆 Questo mese</div>
+          <div class="chart-sublabel">Media: <span id="avgMonth">0</span> cacche/giorno</div>
+          <div class="chart-tabs">
+            <button class="chart-tab active" onclick="switchChartTab('month','consistency',this)">Consistenza</button>
+            <button class="chart-tab" onclick="switchChartTab('month','size',this)">Dimensione</button>
+          </div>
+          <div class="chart-wrap"><canvas id="chartMonth"></canvas></div>
+        </div>
+        <hr class="chart-divider">
+        <div class="chart-block">
+          <div class="chart-label">🗓️ Quest'anno</div>
+          <div class="chart-sublabel">Media: <span id="avgYearChart">0</span> cacche/giorno</div>
+          <div class="chart-tabs">
+            <button class="chart-tab active" onclick="switchChartTab('year','consistency',this)">Consistenza</button>
+            <button class="chart-tab" onclick="switchChartTab('year','size',this)">Dimensione</button>
+          </div>
+          <div class="chart-wrap"><canvas id="chartYear"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div id="tab-log" class="section">
+      <div class="log-body"><div id="logList"></div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- POPUP REGISTRAZIONE -->
+<div class="popup-overlay" id="popupOverlay" onclick="handleOverlayClick(event)">
+  <div class="popup">
+    <div class="popup-handle">
+      <div class="popup-title">Registra la produzione 💩</div>
+      <button class="popup-close" onclick="closePopup()">✕</button>
+    </div>
+    <div class="popup-body">
+      <div class="popup-section-label">💧 Consistenza</div>
+      <div class="option-grid" id="consistencyGrid">
+        <button class="option-btn" onclick="selectOption('consistency','solida',this)"><span class="emoji">🪨</span>Solida come la Toscana</button>
+        <button class="option-btn" onclick="selectOption('consistency','normale',this)"><span class="emoji">✅</span>Normale, mannaggia</button>
+        <button class="option-btn" onclick="selectOption('consistency','morbida',this)"><span class="emoji">🧈</span>Morbidina</button>
+        <button class="option-btn" onclick="selectOption('consistency','pallinette',this)"><span class="emoji">⚫</span>Pallinette da pecora</button>
+        <button class="option-btn" onclick="selectOption('consistency','acquosa',this)"><span class="emoji">💦</span>Acquosa come il Po</button>
+        <button class="option-btn" onclick="selectOption('consistency','esplosiva',this)"><span class="emoji">💥</span>Esplosiva! Mortaretto!</button>
+        <button class="option-btn" onclick="selectOption('consistency','cremosa',this)"><span class="emoji">🫠</span>Cremosa (non parliamone)</button>
+        <button class="option-btn" onclick="selectOption('consistency','vulcanica',this)"><span class="emoji">🌋</span>Vulcanica, è uscita da sola</button>
+        <button class="option-btn" onclick="selectOption('consistency','fantasma',this)"><span class="emoji">👻</span>Fantasma, c'era ma non si vede</button>
+      </div>
+      <div class="popup-section-label">📏 Dimensione</div>
+      <div class="option-grid" id="sizeGrid">
+        <button class="option-btn" onclick="selectOption('size','pallina',this)"><span class="emoji">⚪</span>Pallina da golf</button>
+        <button class="option-btn" onclick="selectOption('size','mezza',this)"><span class="emoji">🌾</span>Mezza porzione (c'era ma non si è impegnata)</button>
+        <button class="option-btn" onclick="selectOption('size','filone',this)"><span class="emoji">🥖</span>Filone di pane (classico e generoso)</button>
+        <button class="option-btn" onclick="selectOption('size','grande',this)"><span class="emoji">🏆</span>Grande come un neonato</button>
+        <button class="option-btn" onclick="selectOption('size','mostruosa',this)"><span class="emoji">🦕</span>Mostruosa</button>
+        <button class="option-btn" onclick="selectOption('size','indefinita',this)"><span class="emoji">🌊</span>Indefinita (era liquida)</button>
+      </div>
+      <button class="popup-save" id="saveBtn" onclick="saveEntry()" disabled>Salva la produzione 💾</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+  // ── COSTANTI ──
+  const CONSISTENCY_LABELS = {
+    solida:'Solida come la Toscana', normale:'Normale, mannaggia', morbida:'Morbidina',
+    pallinette:'Pallinette da pecora', acquosa:'Acquosa come il Po', esplosiva:'Esplosiva! Mortaretto!',
+    cremosa:'Cremosa', vulcanica:'Vulcanica', fantasma:'Fantasma'
+  };
+  const CONSISTENCY_EMOJIS = { solida:'🪨', normale:'✅', morbida:'🧈', pallinette:'⚫', acquosa:'💦', esplosiva:'💥', cremosa:'🫠', vulcanica:'🌋', fantasma:'👻' };
+  const SIZE_LABELS = { pallina:'Pallina da golf', mezza:'Mezza porzione', filone:'Filone di pane', grande:'Grande come un neonato', mostruosa:'Mostruosa', indefinita:'Indefinita' };
+  const SIZE_EMOJIS = { pallina:'⚪', mezza:'🌾', filone:'🥖', grande:'🏆', mostruosa:'🦕', indefinita:'🌊' };
+  const CONSISTENCY_COLORS = { solida:'#3D6E12', normale:'#7EB743', morbida:'#A8D46F', pallinette:'#888780', acquosa:'#4169E1', esplosiva:'#DC143C', cremosa:'#B8860B', vulcanica:'#B22222', fantasma:'#B0BEC5' };
+  const SIZE_COLORS = { pallina:'#A8D46F', mezza:'#7EB743', filone:'#4A7020', grande:'#F4A261', mostruosa:'#E76F51', indefinita:'#4169E1' };
+
+  // ── STATO ──
+  let selected = { consistency: null, size: null };
+  let entries = [];
+  let charts = {};
+  let chartMode = { week: 'consistency', month: 'consistency', year: 'consistency' };
+
+  // ── CONFIG ──
+  const CONFIG = {
+    anthropicKey: "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",
+    jsonbinKey: "$2a$10$eyOvjG2U3yzDkc0inKq0eO5yWBcCyxt2uQfNu1mT1ECkrfNS5WGve",
+    jsonbinBin: "6a3d8648f5f4af5e2930cbd6"
+  };
+  function getConfig() { return CONFIG; }
+  function isConfigured() { return true; }
+  function checkConfig() {}
+
+  // ── JSONBIN ──
+  async function loadData() {
+    const c = getConfig();
+    if (c.jsonbinKey && c.jsonbinBin) {
+      try {
+        const resp = await fetch(`https://api.jsonbin.io/v3/b/${c.jsonbinBin}/latest`, {
+          headers: { 'X-Master-Key': c.jsonbinKey }
+        });
+        const data = await resp.json();
+        if (Array.isArray(data.record)) {
+          entries = data.record;
+        } else if (data.record && Array.isArray(data.record.entries)) {
+          entries = data.record.entries;
+        } else {
+          entries = [];
+        }
+      } catch(e) {
+        entries = JSON.parse(localStorage.getItem('pt_entries_local') || '[]');
+      }
+    } else {
+      entries = JSON.parse(localStorage.getItem('pt_entries_local') || '[]');
+    }
+    updateCounters();
+  }
+
+  async function saveData() {
+    const c = getConfig();
+    localStorage.setItem('pt_entries_local', JSON.stringify(entries));
+    if (c.jsonbinKey && c.jsonbinBin) {
+      try {
+        await fetch(`https://api.jsonbin.io/v3/b/${c.jsonbinBin}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-Master-Key': c.jsonbinKey },
+          body: JSON.stringify({ entries: entries })
+        });
+      } catch(e) { console.warn('JSONBin sync fallita, dati salvati in locale'); }
+    }
+  }
+
+  // ── UI ──
+  function showTab(tab, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+    if (tab === 'log') renderLog();
+    if (tab === 'stats') { updateWeekRange(); renderAllCharts(); }
+  }
+
+  function selectOption(type, value, btn) {
+    const grid = type === 'consistency' ? 'consistencyGrid' : 'sizeGrid';
+    document.querySelectorAll('#' + grid + ' .option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selected[type] = value;
+    document.getElementById('saveBtn').disabled = !(selected.consistency && selected.size);
+  }
+
+  function openPopup() {
+    const btn = document.getElementById('mainBtn');
+    btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
+    document.getElementById('popupOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closePopup() { document.getElementById('popupOverlay').classList.remove('open'); document.body.style.overflow = ''; }
+  function handleOverlayClick(e) { if (e.target === document.getElementById('popupOverlay')) closePopup(); }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  // ── SALVATAGGIO ──
+  async function saveEntry() {
+    if (!selected.consistency || !selected.size) return;
+    const entry = { id: Date.now(), ts: new Date().toISOString(), consistency: selected.consistency, size: selected.size };
+    entries.push(entry);
+    await saveData();
+    updateCounters();
+    closePopup();
+    showToast('💩 Produzione registrata, bravo Manuel!');
+    document.getElementById('saveBtn').disabled = true;
+    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    const savedC = selected.consistency;
+    const savedS = selected.size;
+    selected = { consistency: null, size: null };
+
+    const ffBox = document.getElementById('funFactBox');
+    const ffText = document.getElementById('funFactText');
+    ffBox.classList.add('show');
+    ffText.textContent = 'Sto cercando un fatto di cacca degno di te...';
+    ffText.className = 'fun-fact-text loading';
+    try {
+      const fact = await fetchFunFact(savedC, savedS);
+      ffText.textContent = fact;
+      ffText.className = 'fun-fact-text';
+    } catch(e) {
+      ffText.textContent = 'Lo sapevi che le mucche producono circa 30kg di letame al giorno? Manuel ci prova ogni settimana.';
+      ffText.className = 'fun-fact-text';
+    }
+  }
+
+  // ── FUN FACT ──
+  async function fetchFunFact(consistency, size) {
+    const c = getConfig();
+    if (!c.anthropicKey) throw new Error('No API key');
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': c.anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 200,
+        messages: [{ role: 'user', content: `Sei un esperto di cacche e scoregge con stile da toscano senza filtri, divertente e un po' volgare ma simpatico. Manuel ha appena fatto una cacca di consistenza "${CONSISTENCY_LABELS[consistency]}" e dimensione "${SIZE_LABELS[size]}". Genera UN SOLO fun fact breve (2-3 frasi max) su cacche, scoregge o defecazione di animali o umani. Curiosità vera raccontata in modo scherzoso con tocco toscano. Inizia direttamente col fatto, senza introduzioni.` }]
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.content?.[0]?.text || 'Errore nel caricare il fun fact.';
+  }
+
+  // ── CONTATORI ──
+  function getFixedWeekDays() {
+    const now = new Date();
+    const day = now.getDay();
+    const diffToMon = (day === 0) ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diffToMon);
+    monday.setHours(0,0,0,0);
+    return Array.from({length:7}, (_, i) => { const d = new Date(monday); d.setDate(monday.getDate() + i); return d; });
+  }
+
+  function updateWeekRange() {
+    const days = getFixedWeekDays();
+    const fmt = d => d.toLocaleDateString('it-IT', {day:'numeric', month:'short'});
+    document.getElementById('weekRange').textContent = `${fmt(days[0])} – ${fmt(days[6])}`;
+  }
+
+  function updateCounters() {
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const yearStart = new Date(now.getFullYear(), 0, 1);
+    const weekDays = getFixedWeekDays();
+    const weekStart = weekDays[0];
+    const weekEnd = new Date(weekDays[6]); weekEnd.setHours(23,59,59,999);
+    let today = 0, week = 0, month = 0;
+    entries.forEach(e => {
+      const d = new Date(e.ts);
+      if (d.toDateString() === todayStr) today++;
+      if (d >= weekStart && d <= weekEnd) week++;
+      if (d >= monthStart) month++;
+    });
+    const yearEntries = entries.filter(e => new Date(e.ts) >= yearStart);
+    const doy = Math.floor((now - yearStart) / 86400000) + 1;
+    document.getElementById('countToday').textContent = today;
+    document.getElementById('countWeek').textContent = week;
+    document.getElementById('countMonth').textContent = month;
+    document.getElementById('avgYear').textContent = (yearEntries.length / Math.max(1, doy)).toFixed(1);
+
+    // Top consistenza
+    const freqC = {};
+    entries.forEach(e => { freqC[e.consistency] = (freqC[e.consistency]||0)+1; });
+    const topC = Object.entries(freqC).sort((a,b)=>b[1]-a[1])[0];
+    if (topC) {
+      document.getElementById('topConsistencyEmoji').textContent = CONSISTENCY_EMOJIS[topC[0]] || '💩';
+      document.getElementById('topConsistencyLabel').textContent = CONSISTENCY_LABELS[topC[0]].split(',')[0].split('!')[0].trim();
+    } else {
+      document.getElementById('topConsistencyEmoji').textContent = '—';
+      document.getElementById('topConsistencyLabel').textContent = '–';
+    }
+
+    // Top dimensione
+    const freqS = {};
+    entries.forEach(e => { freqS[e.size] = (freqS[e.size]||0)+1; });
+    const topS = Object.entries(freqS).sort((a,b)=>b[1]-a[1])[0];
+    if (topS) {
+      document.getElementById('topSizeEmoji').textContent = SIZE_EMOJIS[topS[0]] || '💩';
+      document.getElementById('topSizeLabel').textContent = SIZE_LABELS[topS[0]];
+    } else {
+      document.getElementById('topSizeEmoji').textContent = '—';
+      document.getElementById('topSizeLabel').textContent = '–';
+    }
+  }
+
+  // ── GRAFICI ──
+  function switchChartTab(period, mode, btn) {
+    btn.closest('.chart-block').querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    chartMode[period] = mode;
+    renderChart(period);
+  }
+
+  function renderAllCharts() {
+    setTimeout(() => { renderChart('week'); renderChart('month'); renderChart('year'); }, 50);
+  }
+
+  function renderChart(key) {
+    if (charts[key]) { charts[key].destroy(); delete charts[key]; }
+    const canvas = document.getElementById('chart' + key.charAt(0).toUpperCase() + key.slice(1));
+    if (!canvas) return;
+    const now = new Date();
+    const mode = chartMode[key];
+    let labels, datasets;
+
+    if (key === 'week') {
+      const days = getFixedWeekDays();
+      labels = days.map(d => d.toLocaleDateString('it-IT',{weekday:'short',day:'numeric'}));
+      if (mode === 'consistency') {
+        datasets = Object.keys(CONSISTENCY_LABELS).map(c => ({ label: CONSISTENCY_LABELS[c].split(',')[0].split('!')[0].trim(), data: days.map(d => entries.filter(e => new Date(e.ts).toDateString()===d.toDateString()&&e.consistency===c).length), backgroundColor: CONSISTENCY_COLORS[c], borderRadius: 3, borderSkipped: false }));
+      } else {
+        datasets = Object.keys(SIZE_LABELS).map(s => ({ label: SIZE_LABELS[s], data: days.map(d => entries.filter(e => new Date(e.ts).toDateString()===d.toDateString()&&e.size===s).length), backgroundColor: SIZE_COLORS[s], borderRadius: 3, borderSkipped: false }));
+      }
+    } else if (key === 'month') {
+      const dim = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+      labels = Array.from({length:dim},(_,i)=>String(i+1));
+      const mE = entries.filter(e=>{ const d=new Date(e.ts); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear(); });
+      document.getElementById('avgMonth').textContent = (mE.length/Math.max(1,now.getDate())).toFixed(1);
+      if (mode === 'consistency') {
+        datasets = Object.keys(CONSISTENCY_LABELS).map(c => ({ label: CONSISTENCY_LABELS[c].split(',')[0].split('!')[0].trim(), data: Array.from({length:dim},(_,i)=>mE.filter(e=>new Date(e.ts).getDate()===i+1&&e.consistency===c).length), backgroundColor: CONSISTENCY_COLORS[c], borderRadius: 2, borderSkipped: false }));
+      } else {
+        datasets = Object.keys(SIZE_LABELS).map(s => ({ label: SIZE_LABELS[s], data: Array.from({length:dim},(_,i)=>mE.filter(e=>new Date(e.ts).getDate()===i+1&&e.size===s).length), backgroundColor: SIZE_COLORS[s], borderRadius: 2, borderSkipped: false }));
+      }
+    } else {
+      labels = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+      const yE = entries.filter(e=>new Date(e.ts).getFullYear()===now.getFullYear());
+      const doy = Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
+      document.getElementById('avgYearChart').textContent = (yE.length/Math.max(1,doy)).toFixed(1);
+      if (mode === 'consistency') {
+        datasets = Object.keys(CONSISTENCY_LABELS).map(c => ({ label: CONSISTENCY_LABELS[c].split(',')[0].split('!')[0].trim(), data: labels.map((_,i)=>yE.filter(e=>new Date(e.ts).getMonth()===i&&e.consistency===c).length), backgroundColor: CONSISTENCY_COLORS[c], borderRadius: 3, borderSkipped: false }));
+      } else {
+        datasets = Object.keys(SIZE_LABELS).map(s => ({ label: SIZE_LABELS[s], data: labels.map((_,i)=>yE.filter(e=>new Date(e.ts).getMonth()===i&&e.size===s).length), backgroundColor: SIZE_COLORS[s], borderRadius: 3, borderSkipped: false }));
+      }
+    }
+
+    datasets = datasets.filter(d => d.data.some(v => v > 0));
+    if (!datasets.length) datasets = [{ label: 'Nessuna produzione', data: labels.map(()=>0), backgroundColor: '#E0E0DC' }];
+
+    charts[key] = new Chart(canvas, {
+      type: 'bar', data: { labels, datasets },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position:'bottom', labels:{ font:{size:10,family:'DM Sans'}, boxWidth:10, padding:10 } } },
+        scales: { x: { stacked:true, ticks:{font:{size:10}}, grid:{display:false} }, y: { stacked:true, ticks:{font:{size:10},stepSize:1}, grid:{color:'rgba(0,0,0,0.05)'}, beginAtZero:true } }
+      }
+    });
+  }
+
+  // ── LOG ──
+  function renderLog() {
+    const list = document.getElementById('logList');
+    if (!entries.length) {
+      list.innerHTML = `<div class="empty-state"><span class="empty-emoji">🚽</span><div class="empty-text">Nessuna produzione ancora.<br>Manuel, dai, muoviti che non sei mica uno stitico!</div></div>`;
+      return;
+    }
+    const sorted = [...entries].sort((a,b)=>new Date(b.ts)-new Date(a.ts)).slice(0,50);
+    list.innerHTML = sorted.map(e => {
+      const d = new Date(e.ts);
+      const time = d.toLocaleDateString('it-IT',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      return `<div class="log-item"><span class="log-emoji">💩</span><div class="log-info"><div class="log-desc">${CONSISTENCY_LABELS[e.consistency]} — ${SIZE_LABELS[e.size]}</div><div class="log-time">${time}</div></div><button class="log-del" onclick="deleteEntry(${e.id})">✕ Elimina</button></div>`;
+    }).join('');
+  }
+
+  function deleteEntry(id) {
+    entries = entries.filter(e=>e.id!==id);
+    saveData(); updateCounters(); renderLog();
+    showToast('🗑️ Produzione rimossa dagli annali');
+  }
+
+  // ── INIT ──
+  checkConfig();
+  updateWeekRange();
+  loadData();
+</script>
+</body>
+</html>
