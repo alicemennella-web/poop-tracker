@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>💩 Poop Tracker di Manuel</title>
+  <title>Poop Tracker di Manuel</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💩</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -121,8 +121,6 @@
     .config-banner a { color: var(--green-dark); font-weight: 600; cursor: pointer; text-decoration: underline; }
 
     /* SETTINGS POPUP */
-    .settings-btn { position: absolute; top: 1.4rem; right: 1.5rem; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: #fff; font-size: 16px; padding: 6px 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
-    .settings-btn:hover { background: rgba(255,255,255,0.3); }
     .header { position: relative; }
 
     .settings-form { padding: 1.5rem; }
@@ -144,7 +142,6 @@
       Le defecazioni di Manuel, tracciate con orgoglio
       <em>Perché le grandi opere vanno documentate</em>
     </div>
-    <button class="settings-btn" onclick="openSettings()" title="Impostazioni">⚙️</button>
   </div>
 
   <div class="nav-wrap">
@@ -161,11 +158,6 @@
     <div id="tab-insert" class="section active">
       <div class="insert-body">
 
-        <div class="config-banner" id="configBanner">
-          <strong>⚠️ Configurazione incompleta</strong>
-          Aggiungi la tua Anthropic API Key e JSONBin per salvare i dati online e ricevere i fun facts.
-          <a onclick="openSettings()">Configura ora →</a>
-        </div>
 
         <button class="big-btn" id="mainBtn" onclick="openPopup()">
           <span class="big-btn-emoji">💩</span>
@@ -291,30 +283,6 @@
   </div>
 </div>
 
-<!-- POPUP IMPOSTAZIONI -->
-<div class="popup-overlay" id="settingsOverlay" onclick="handleSettingsOverlayClick(event)">
-  <div class="popup">
-    <div class="popup-handle">
-      <div class="popup-title">⚙️ Impostazioni</div>
-      <button class="popup-close" onclick="closeSettings()">✕</button>
-    </div>
-    <div class="settings-form">
-      <label>Anthropic API Key</label>
-      <input type="password" id="inputAnthropicKey" placeholder="sk-ant-..." autocomplete="off">
-      <label>JSONBin Master Key</label>
-      <input type="password" id="inputJsonbinKey" placeholder="$2a$10$..." autocomplete="off">
-      <label>JSONBin Bin ID</label>
-      <input type="text" id="inputJsonbinBin" placeholder="6507a1..." autocomplete="off">
-      <button class="settings-save" onclick="saveSettings()">💾 Salva impostazioni</button>
-      <p class="settings-note">
-        Le chiavi vengono salvate solo sul tuo browser (localStorage) e non vengono mai condivise.<br><br>
-        📌 <strong>Come ottenerle:</strong><br>
-        • <strong>Anthropic API Key</strong>: <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys<br>
-        • <strong>JSONBin</strong>: <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> → crea un account, poi un nuovo bin con contenuto <code>[]</code>, copia Master Key e Bin ID
-      </p>
-    </div>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 
@@ -339,39 +307,14 @@
   let chartMode = { week: 'consistency', month: 'consistency', year: 'consistency' };
 
   // ── CONFIG ──
-  function getConfig() {
-    return {
-      anthropicKey: localStorage.getItem('pt_anthropic_key') || '',
-      jsonbinKey: localStorage.getItem('pt_jsonbin_key') || '',
-      jsonbinBin: localStorage.getItem('pt_jsonbin_bin') || ''
-    };
-  }
-  function isConfigured() {
-    const c = getConfig();
-    return c.anthropicKey && c.jsonbinKey && c.jsonbinBin;
-  }
-  function saveSettings() {
-    localStorage.setItem('pt_anthropic_key', document.getElementById('inputAnthropicKey').value.trim());
-    localStorage.setItem('pt_jsonbin_key', document.getElementById('inputJsonbinKey').value.trim());
-    localStorage.setItem('pt_jsonbin_bin', document.getElementById('inputJsonbinBin').value.trim());
-    closeSettings();
-    showToast('✅ Impostazioni salvate!');
-    checkConfig();
-    loadData();
-  }
-  function openSettings() {
-    const c = getConfig();
-    document.getElementById('inputAnthropicKey').value = c.anthropicKey;
-    document.getElementById('inputJsonbinKey').value = c.jsonbinKey;
-    document.getElementById('inputJsonbinBin').value = c.jsonbinBin;
-    document.getElementById('settingsOverlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeSettings() { document.getElementById('settingsOverlay').classList.remove('open'); document.body.style.overflow = ''; }
-  function handleSettingsOverlayClick(e) { if (e.target === document.getElementById('settingsOverlay')) closeSettings(); }
-  function checkConfig() {
-    document.getElementById('configBanner').classList.toggle('show', !isConfigured());
-  }
+  const CONFIG = {
+    anthropicKey: "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",
+    jsonbinKey: "$2a$10$eyOvjG2U3yzDkc0inKq0eO5yWBcCyxt2uQfNu1mT1ECkrfNS5WGve",
+    jsonbinBin: "6a3d8648f5f4af5e2930cbd6"
+  };
+  function getConfig() { return CONFIG; }
+  function isConfigured() { return true; }
+  function checkConfig() {}
 
   // ── JSONBIN ──
   async function loadData() {
